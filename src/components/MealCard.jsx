@@ -23,7 +23,7 @@ function MealCard({ meal }) {
         <p className="text-sm text-gray-400">
           {meal.strCategory} • {meal.strArea}
         </p>
-        <p className="mt-2 text-gray-300 text-sm">{shortInstructions}</p>
+        <p className="m-2 text-gray-300 text-sm">{shortInstructions}</p>
       </div>
     </div>
   );
