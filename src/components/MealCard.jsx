@@ -1,10 +1,12 @@
 import React from "react";
+
 function MealCard({ meal }) {
   const instructions = meal.strInstructions ?? "";
   const shortInstructions =
-    instructions.length > 120
+    instructions.length > 140
       ? instructions.slice(0, 140) + "..."
       : instructions;
+
   return (
     <div
       onClick={() => console.log(`Clicked ${meal.strMeal}`)}
@@ -18,12 +20,17 @@ function MealCard({ meal }) {
       />
 
       {/* Content */}
-      <div className="p-4">
-        <h4 className="text-xl font-bold text-white">{meal.strMeal}</h4>
-        <p className="text-sm text-gray-400">
-          {meal.strCategory} • {meal.strArea}
+      <div className="p-5">
+        <h4 className="text-xl font-extrabold text-yellow-400 mb-1">
+          {meal.strMeal}
+        </h4>
+        <p className="text-sm text-gray-400 mb-3">
+          <span className="font-semibold">{meal.strCategory}</span> •{" "}
+          <span className="italic">{meal.strArea}</span>
         </p>
-        <p className="m-2 text-gray-300 text-sm">{shortInstructions}</p>
+        <p className="text-gray-300 text-sm leading-relaxed">
+          {shortInstructions}
+        </p>
       </div>
     </div>
   );

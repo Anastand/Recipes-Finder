@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { getAllMeals, searchByMealName } from "./services/api";
-import { useEffect } from "react";
 import MealCard from "./components/MealCard";
 
 function App() {
@@ -13,6 +12,8 @@ function App() {
   const [allMeals, setAllMeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [validsearch, setvalidsearch] = useState(false);
+  const [lastsearchTerm, setlastsearchTerm] = useState("");
+
   useEffect(() => {
     // this will run on page load and get all the meals
     setLoading(true);
@@ -29,22 +30,36 @@ function App() {
     };
     getAllMealsFunc();
   }, []);
+
   const handlevalidSearch = (e) => {
     e.preventDefault(); // prevents page reload and keeps input value
+    if (!searchTerm.trim()) {
+      // Empty search resets to all meals
+      setvalidsearch(false);
+      console.log("here from valid search");
+      setMealData([]);
+      return;
+    }
     handleSearch();
-    console.log("here");
-    console.log(validsearch);
   };
 
   const handleSearch = async (e) => {
     try {
       setLoading(true);
-      const responseData = await searchByMealName(searchTerm);
+      const currentsearch = searchTerm;
+      const responseData = await searchByMealName(currentsearch);
+      setlastsearchTerm(currentsearch);
+
       if (!responseData.meals) {
         setMealData(null);
+        setvalidsearch(true);
+        console.log("herer from handle searc");
         return;
       }
+
       setMealData(responseData.meals[0]);
+      setvalidsearch(true);
+      setSearchTerm("");
       console.log(`hello from fetch meal func with infor`);
     } catch (error) {
       setError(error);
@@ -52,6 +67,7 @@ function App() {
     } finally {
       setLoading(false);
       setvalidsearch(true);
+      // setSearchTerm("");
     }
   };
   return (
@@ -66,7 +82,9 @@ function App() {
               setSearchTerm(e.target.value);
             }}
           />
-          <button type="submit">search</button>
+          <button type="submit" disabled={loading}>
+            search
+          </button>
         </form>
       </div>
       {/* <div> {mealData && <MealCard meal={mealData} />}</div> */}
@@ -75,21 +93,29 @@ function App() {
           <MealCard key={meal.idMeal} meal={meal} />
         ))}
       </div> */}
+      {loading && (
+        <div className="flex justify-center items-center mt-10">
+          <p className="text-blue-600 text-lg font-semibold">Loading...</p>
+        </div>
+      )}
       {validsearch == false ? (
-        allMeals.map((meal) => <MealCard key={meal.idMeal} meal={meal} />)
-      ) : validsearch == true ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+          {allMeals.map((meal) => (
+            <MealCard key={meal.idMeal} meal={meal} />
+          ))}
+        </div>
+      ) : validsearch == true && mealData == null ? (
+        <div className="flex justify-center items-center mt-10">
+          <p className="text-red-600 text-lg font-semibold">
+            No meal found for "{lastsearchTerm}"
+          </p>
+        </div>
+      ) : (
         <div>
           <div className="flex justify-center">
             <MealCard meal={mealData} />
           </div>
-          <div className="felx justify-center">
-            <p>
-              well go back the previous page or refresh , removing the searched term will not work
-            </p>
-          </div>
         </div>
-      ) : (
-        <p>No meal found for</p>
       )}
     </>
   );
