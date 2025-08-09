@@ -1,15 +1,21 @@
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
 function MealCard({ meal }) {
   const instructions = meal.strInstructions ?? "";
   const shortInstructions =
     instructions.length > 140
       ? instructions.slice(0, 140) + "..."
       : instructions;
-
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate(`/meal/${meal.idMeal}`);
+    console.log(
+      `herer from handle click with ${meal.strMeal} and ${meal.idMeal}`
+    );
+  };
   return (
     <div
-      onClick={() => console.log(`Clicked ${meal.strMeal}`)}
+      onClick={() => handleClick()}
       className="max-w-sm bg-[#181818] rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/30"
     >
       {/* Meal Image */}
