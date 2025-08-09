@@ -11,9 +11,29 @@ function Home() {
   const [validsearch, setvalidsearch] = useState(false);
   const [lastsearchTerm, setlastsearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [selectedcategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
-    // this will run on page load and get all the meals
+    fetch("https://www.themealdb.com/api/json/v1/1/list.php?c=list")
+      .then((response) => response.json())
+      .then((data) => setCategory(data.meals))
+      .catch((err) => setError(err));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedcategory) return;
+    fetch(
+      `https://www.themealdb.com/api/json/v1/1/filter.php?c=${selectedcategory}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setvalidsearch(false);
+        setAllMeals(data.meals);
+      });
+  }, [selectedcategory]);
+
+  useEffect(() => {
     setLoading(true);
     const getAllMealsFunc = async () => {
       try {
@@ -30,18 +50,16 @@ function Home() {
   }, []);
 
   const handlevalidSearch = (e) => {
-    e.preventDefault(); // prevents page reload and keeps input value
+    e.preventDefault();
     if (!searchTerm.trim()) {
-      // Empty search resets to all meals
       setvalidsearch(false);
-      console.log("here from valid search");
       setMealData([]);
       return;
     }
     handleSearch();
   };
 
-  const handleSearch = async (e) => {
+  const handleSearch = async () => {
     try {
       setLoading(true);
       const currentsearch = searchTerm;
@@ -51,28 +69,24 @@ function Home() {
       if (!responseData.meals) {
         setMealData(null);
         setvalidsearch(true);
-        console.log("herer from handle searc");
         return;
       }
 
       setMealData(responseData.meals[0]);
       setvalidsearch(true);
       setSearchTerm("");
-      console.log(`hello from fetch meal func with infor`);
     } catch (error) {
       setError(error);
-      console.log("error is " + error);
     } finally {
       setLoading(false);
       setvalidsearch(true);
-      // setSearchTerm("");
     }
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    if (value.trim() == "") {
+    if (value.trim() === "") {
       setSuggestions([]);
       return;
     }
@@ -80,47 +94,31 @@ function Home() {
       meals.strMeal.toLowerCase().includes(value.toLowerCase())
     );
     setSuggestions(filtered);
-    console.log(filtered);
   };
+
   return (
-    <>
-      {/* <div>
-        <form onSubmit={handlevalidSearch} className="flex justify-center my-6">
-          <input
-            type="text"
-            placeholder="Search Meal"
-            value={searchTerm}
-            // onChange={(e) => setSearchTerm(e.target.value)}
-            onChange={handleInputChange}
-            className="w-64 px-4 py-2 rounded-l-md bg-[#181818] text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-2 bg-yellow-500 hover:bg-yellow-600 hover:text-gray-800 text-black font-semibold rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            Search
-          </button>
-          {suggestions.length > 0 && (
-            <ul className="absolute bg-slate-600 border border-gray-300 rounded-md w-64 mt-1 shadow-lg z-10">
-              {suggestions.map((meal) => (
-                <li
-                  key={meal.idMeal}
-                  onClick={() => {
-                    setSearchTerm(meal.strMeal);
-                    setSuggestions([]);
-                  }}
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                >
-                  {meal.strMeal}
-                </li>
-              ))}
-            </ul>
-          )}
-        </form>
-      </div> */}
-      <div className="flex justify-center my-6">
-        <form onSubmit={handlevalidSearch} className="relative w-64 flex">
+    <div className="px-4 sm:px-8 py-6">
+      {/* Filters & Search */}
+      <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
+        {/* Category Dropdown */}
+        <select
+          value={selectedcategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="px-4 py-2 w-full md:w-auto bg-[#181818] text-white border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        >
+          <option value="">All Categories</option>
+          {category.map((cat) => (
+            <option key={cat.strCategory} value={cat.strCategory}>
+              {cat.strCategory}
+            </option>
+          ))}
+        </select>
+
+        {/* Search */}
+        <form
+          onSubmit={handlevalidSearch}
+          className="relative w-full md:w-64 flex"
+        >
           <input
             type="text"
             placeholder="Search Meal"
@@ -144,9 +142,9 @@ function Home() {
                   onClick={() => {
                     setSearchTerm(meal.strMeal);
                     setSuggestions([]);
-                    handleSearch(); // Trigger search instantly
+                    handleSearch();
                   }}
-                  className="px-4 py-2 cursor-pointer text-white hover:bg-[#2a2a2a]"
+                  className="px-4 py-2 cursor-pointer text-white hover:bg-[#2a2a2a] transition"
                 >
                   {meal.strMeal}
                 </li>
@@ -156,37 +154,45 @@ function Home() {
         </form>
       </div>
 
-      {/* <div> {mealData && <MealCard meal={mealData} />}</div> */}
-      {/* <div>
-        {allMeals.map((meal) => (
-          <MealCard key={meal.idMeal} meal={meal} />
-        ))}
-      </div> */}
+      {/* Loading */}
       {loading && (
-        <div className="flex justify-center items-center mt-10">
-          <p className="text-blue-600 text-lg font-semibold">Loading...</p>
+        <div className="flex justify-center items-center py-20">
+          <p className="text-blue-400 text-lg font-semibold">Loading...</p>
         </div>
       )}
-      {validsearch == false ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-          {allMeals.map((meal) => (
-            <MealCard key={meal.idMeal} meal={meal} />
-          ))}
-        </div>
-      ) : validsearch == true && mealData == null ? (
-        <div className="flex justify-center items-center mt-10">
-          <p className="text-red-600 text-lg font-semibold">
-            No meal found for "{lastsearchTerm}"
+
+      {/* Error */}
+      {error && (
+        <div className="flex justify-center items-center py-20">
+          <p className="text-red-500 font-semibold">
+            We had an error: {error.message || error}. Please reload.
           </p>
         </div>
-      ) : (
-        <div>
-          <div className="flex justify-center">
-            <MealCard meal={mealData} />
-          </div>
-        </div>
       )}
-    </>
+
+      {/* Meals Display */}
+      {!loading && !error && (
+        <>
+          {validsearch === false ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {allMeals.map((meal) => (
+                <MealCard key={meal.idMeal} meal={meal} />
+              ))}
+            </div>
+          ) : validsearch === true && mealData === null ? (
+            <div className="flex justify-center items-center py-20">
+              <p className="text-red-400 text-lg font-semibold">
+                No meal found for "{lastsearchTerm}"
+              </p>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <MealCard meal={mealData} />
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 
