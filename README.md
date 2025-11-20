@@ -126,8 +126,6 @@ Here’s how my skills have evolved so far:
    * Improved UI/UX and responsive layout
    * Preparing for search suggestions and filtering
 
-**Next Step →** Build 1–2 more projects without tutorials, then move into **Next.js** for SSR, SSG, and API routes.
-
 ---
 
 
@@ -135,8 +133,3 @@ Here’s how my skills have evolved so far:
 ## 📜 License
 
 MIT License — feel free to use and adapt.
-
-```
-I can also make **a simple visual timeline graphic** for the repo to make it stand out.  
-Want me to make that too?
-```
